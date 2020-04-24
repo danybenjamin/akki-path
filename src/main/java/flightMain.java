@@ -1,7 +1,6 @@
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 
 public class flightMain {
 
@@ -76,8 +75,6 @@ public class flightMain {
       String pipeDelimited = requestScanner.next();
       String[] allInfo = pipeDelimited.split("\\|");
 
-      System.out.println(allInfo[0]);
-
       if (allInfo[2].equals("T")) {
 
         System.out.println(String.format("Sorting routes from %s to %s by Time", allInfo[0], allInfo[1]));
@@ -118,9 +115,84 @@ public class flightMain {
       City city = cities.get(cityIndex);
       LinkedList<ConnectingCity> connectingCities = city.connectingCity;
 
+      Stack<FlightPath> flightPaths = new Stack<>();
+      //Find routes
+
+      System.out.println(String.format("\n\nLooking for connections from %s to %s.", startCity, endCity));
+
+      for (int i = 0; i < connectingCities.size(); i++) {
+
+        System.out.println(String.format("\t\tfound dest.. %s > %s ", startCity, connectingCities.get(i).name));
+        ConnectingCity currCity = connectingCities.get(i);
+
+        if (currCity.name.equals(endCity)) {
+          List<String> pathCities = new ArrayList<>();
+          pathCities.add(0, startCity);
+          pathCities.add(currCity.name);
+
+          FlightPath flightPath = new FlightPath(currCity.cost, currCity.time, pathCities);
+
+          if (flightPaths.isEmpty()) {
+            flightPaths.push(flightPath);
+          } else if (flightPaths.get(0).totalTime > flightPath.totalTime) {
+            flightPaths.push(flightPath);
+          } else {
+            flightPaths.add(flightPath);
+          }
+
+          System.out.println("\t\t -- direct connection");
+        } else {
+          System.out.println("\t\t\tLooking for connections");
+
+          City passingCity = cities.get(getCityIndex(cities, connectingCities.get(i).name));
+
+          for (int j = 0; j < passingCity.connectingCity.size(); j++) {
+            ConnectingCity passingCityConnection = passingCity.connectingCity.get(j);
+            if (passingCityConnection.name.equals(endCity)) {
+
+              System.out.println(String.format("\t\t\t%s connects to %s", passingCityConnection.name, currCity.name));
+
+              List<String> pathCities = new ArrayList<>();
+              pathCities.add(0, startCity);
+              pathCities.add(passingCity.name);
+              pathCities.add(endCity);
+
+              int totalTime = currCity.time + passingCityConnection.time;
+              int totalCost = currCity.cost + passingCityConnection.cost;
+
+              FlightPath flightPath = new FlightPath(totalCost, totalTime, pathCities);
+
+              if (flightPaths.isEmpty()) {
+                flightPaths.push(flightPath);
+              } else if (flightPaths.get(0).totalTime > flightPath.totalTime) {
+                flightPaths.push(flightPath);
+              } else {
+                flightPaths.add(flightPath);
+              }
+
+            }
+          }
+        }
+      }
+
+      for (int i = 0; i < flightPaths.size(); i++) {
+        System.out.println("Flightpath: " + flightPaths.get(i).toString());
+      }
       return;
     }
 
     System.out.println("no info found on city");
   }
 }
+//
+//static Stack<FlightPath> getAllRoutes(String startCity, String endCity, LinkedList<City> cities, int totalPaths) {
+//  Stack <FlightPath> flightPaths = new Stack<>();
+//
+//  int foundPaths = 0;
+//  boolean allPathsFound = false;
+//  while (!allPathsFound && foundPaths < totalPaths){
+//
+//
+//
+//  }
+//}
