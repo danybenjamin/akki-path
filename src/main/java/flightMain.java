@@ -4,44 +4,91 @@ import java.util.LinkedList;
 import java.util.Scanner;
 
 public class flightMain {
+
   public static void main(String arg[]) throws Exception {
 
     // Read in possible flightPaths
-    File data = new File("/Users/dany.benjamin/IdeaProjects/akki/src/main/resources/FlightData.txt");
-    Scanner scanner = new Scanner(data);
+    File flightPaths = new File("/Users/dany.benjamin/IdeaProjects/akki/src/main/resources/FlightData.txt");
+    Scanner flightPathScanner = new Scanner(flightPaths);
 
     LinkedList<City> cities = new LinkedList<City>();
 
-    int count = scanner.nextInt();
+    int count = flightPathScanner.nextInt();
     for (int i = 0; i < count; i++) {
-      String pipeDelimited = scanner.next();
+      String pipeDelimited = flightPathScanner.next();
       String[] allInfo = pipeDelimited.split("\\|");
 
+      // Route A>B
       int index = getCityIndex(cities, allInfo[0]);
+      int indexB = getCityIndex(cities, allInfo[1]);
+      ConnectingCity connectingCity = new ConnectingCity(allInfo[1], allInfo[2], allInfo[3]);
+      ConnectingCity connectingCityB = new ConnectingCity(allInfo[0], allInfo[2], allInfo[3]);
 
       if (index < 0) {
 
-        ConnectingCity connectingCity = new ConnectingCity(allInfo[1], allInfo[2], allInfo[3]);
         City newCity = new City(allInfo[0]);
         newCity.connectingCity.add(connectingCity);
         cities.add(newCity);
 
-//        System.out.println("Adding new city: " + newCity.toString());
+        System.out.println("Adding new city: " + newCity.toString());
+
+        // Add Route B > A
+
+        if (indexB < 0) {
+
+          City newCityB = new City(allInfo[1]);
+          newCityB.connectingCity.add(connectingCityB);
+          cities.add(newCityB);
+
+          System.out.println("Adding new city: " + newCityB.toString());
+        } else {
+          cities.get(indexB).connectingCity.add(connectingCityB);
+        }
       } else {
-        ConnectingCity connectingCity = new ConnectingCity(allInfo[1], allInfo[2], allInfo[3]);
         cities.get(index).connectingCity.add(connectingCity);
 
-//				System.out.println("Adding new connection to city: " + cities.get(index).toString());
+        System.out.println("Adding new connection to city: " + cities.get(index).toString());
+
+        // Add Route B > A
+        if (indexB < 0) {
+
+          City newCityB = new City(allInfo[1]);
+          newCityB.connectingCity.add(connectingCityB);
+          cities.add(newCityB);
+
+          System.out.println("Adding new city: " + newCityB.toString());
+        } else {
+          cities.get(indexB).connectingCity.add(connectingCityB);
+        }
       }
     }
 
-    scanner.close();
+    flightPathScanner.close();
 
-    System.out.println("\n -- All cities -- \n " + cities.toString());
+    System.out.println("\n -- All cities -- \n " + cities.toString() + "\n -- -- \n");
 
+    // Read and process requests
+    File requestedFlights = new File("/Users/dany.benjamin/IdeaProjects/akki/src/main/resources/Requested.txt");
+    Scanner requestScanner = new Scanner(requestedFlights);
+    int lineCount = requestScanner.nextInt();
+    for (int i = 0; i < lineCount; i++) {
 
+      String pipeDelimited = requestScanner.next();
+      String[] allInfo = pipeDelimited.split("\\|");
 
+      System.out.println(allInfo[0]);
 
+      if (allInfo[2].equals("T")) {
+
+        System.out.println(String.format("Sorting routes from %s to %s by Time", allInfo[0], allInfo[1]));
+
+        sortByTime(allInfo[0], allInfo[1], cities);
+      } else {
+        System.out.println("allInfo is " + allInfo[2]);
+      }
+    }
+
+    requestScanner.close();
   }
 
   private static int getCityIndex(LinkedList<City> cities, String cityName) {
@@ -59,4 +106,21 @@ public class flightMain {
 
     return -1;
   }
-} 
+
+  public static void sortByTime(String startCity, String endCity, LinkedList<City> cities) {
+
+    // Find the city
+    int cityIndex = getCityIndex(cities, startCity);
+
+    if (cityIndex >= 0) {
+      System.out.println("City found at index:" + cityIndex);
+
+      City city = cities.get(cityIndex);
+      LinkedList<ConnectingCity> connectingCities = city.connectingCity;
+
+      return;
+    }
+
+    System.out.println("no info found on city");
+  }
+}
