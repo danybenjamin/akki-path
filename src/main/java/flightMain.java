@@ -75,14 +75,8 @@ public class flightMain {
       String pipeDelimited = requestScanner.next();
       String[] allInfo = pipeDelimited.split("\\|");
 
-      if (allInfo[2].equals("T")) {
-
-        System.out.println(String.format("Sorting routes from %s to %s by Time", allInfo[0], allInfo[1]));
-
-        sortByTime(allInfo[0], allInfo[1], cities);
-      } else {
-        System.out.println("allInfo is " + allInfo[2]);
-      }
+      List<ConnectingCity> citesForPath = getAllRoutes(allInfo[0], allInfo[1], cities, null);
+      System.out.println(citesForPath.toString());
     }
 
     requestScanner.close();
@@ -169,7 +163,6 @@ public class flightMain {
               } else {
                 flightPaths.add(flightPath);
               }
-
             }
           }
         }
@@ -183,16 +176,34 @@ public class flightMain {
 
     System.out.println("no info found on city");
   }
+
+  static List<ConnectingCity> getAllRoutes(String startCity, String endCity, LinkedList<City> cities, List<ConnectingCity> flightPath) {
+
+    if (flightPath == null) {
+      flightPath = new ArrayList<>();
+    }
+
+    LinkedList<ConnectingCity> connectingCities = cities.get(getCityIndex(cities, startCity)).connectingCity;
+
+    for (ConnectingCity city : connectingCities) {
+
+      if (flightPath.contains(city)) {
+        break;
+      }
+
+      flightPath.add(city);
+
+      if (city.name.equals(endCity)) {
+        break;
+      }
+
+      getAllRoutes(city.name, endCity, cities, flightPath);
+    }
+
+    if (flightPath.get(flightPath.size() - 1).name.equals(endCity)) {
+      return flightPath;
+    }
+
+    return null;
+  }
 }
-//
-//static Stack<FlightPath> getAllRoutes(String startCity, String endCity, LinkedList<City> cities, int totalPaths) {
-//  Stack <FlightPath> flightPaths = new Stack<>();
-//
-//  int foundPaths = 0;
-//  boolean allPathsFound = false;
-//  while (!allPathsFound && foundPaths < totalPaths){
-//
-//
-//
-//  }
-//}
